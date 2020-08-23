@@ -78,6 +78,8 @@ export class ClientEngine<GE extends GameEngine<PhysicsEngine>> {
 
   start(): Promise<any>;
 
+  renderLoop(time: number);
+
   step(t: number, dt: number, physicsOnly?: boolean): void;
 }
 

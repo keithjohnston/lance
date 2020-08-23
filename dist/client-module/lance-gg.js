@@ -15879,7 +15879,7 @@
             let world = this.world = new CANNON.World();
             world.quatNormalizeSkip = 0;
             world.quatNormalizeFast = false;
-            world.gravity.set(0, -10, 0);
+            world.gravity.set(0, -1, 0);
             world.broadphase = new CANNON.NaiveBroadphase();
             this.CANNON = CANNON;
         }
@@ -25992,6 +25992,18 @@
             return matchmaker.then(connectSocket);
         }
 
+        // This should be scheduled in a tight timed loop
+        // ex: window.requestAnimationFrame(renderLoop)
+        renderLoop(timestamp) {
+          if (this.stopped) {
+            this.renderer.stop();
+            return;
+          }
+          this.lastTimestamp = this.lastTimestamp || timestamp;
+          this.renderer.draw(timestamp, timestamp - this.lastTimestamp);
+          this.lastTimestamp = timestamp;
+        };
+
         /**
          * Start the client engine, setting up the game loop, rendering loop and renderer.
          *
@@ -26004,17 +26016,6 @@
             // initialize the renderer
             // the render loop waits for next animation frame
             if (!this.renderer) alert('ERROR: game has not defined a renderer');
-            let renderLoop = (timestamp) => {
-                if (this.stopped) {
-                    this.renderer.stop();
-                    return;
-                }
-                this.lastTimestamp = this.lastTimestamp || timestamp;
-                this.renderer.draw(timestamp, timestamp - this.lastTimestamp);
-                this.lastTimestamp = timestamp;
-                window.requestAnimationFrame(renderLoop);
-            };
-
             return this.renderer.init().then(() => {
                 this.gameEngine.start();
 
@@ -26028,8 +26029,6 @@
                     this.scheduler.start();
                 }
 
-                if (typeof window !== 'undefined')
-                    window.requestAnimationFrame(renderLoop);
                 if (this.options.autoConnect && this.options.standaloneMode !== true) {
                     return this.connect()
                         .catch((error) => {

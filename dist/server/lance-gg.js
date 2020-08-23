@@ -16243,7 +16243,7 @@ function (_PhysicsEngine) {
     var world = _this.world = new CANNON.World();
     world.quatNormalizeSkip = 0;
     world.quatNormalizeFast = false;
-    world.gravity.set(0, -10, 0);
+    world.gravity.set(0, -1, 0);
     world.broadphase = new CANNON.NaiveBroadphase();
     _this.CANNON = CANNON;
     return _this;

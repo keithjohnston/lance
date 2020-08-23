@@ -16243,7 +16243,7 @@
       var world = _this.world = new CANNON.World();
       world.quatNormalizeSkip = 0;
       world.quatNormalizeFast = false;
-      world.gravity.set(0, -10, 0);
+      world.gravity.set(0, -1, 0);
       world.broadphase = new CANNON.NaiveBroadphase();
       _this.CANNON = CANNON;
       return _this;
@@ -26968,16 +26968,30 @@
         });
         if (this.options.matchmaker) matchmaker = Utils$1.httpGetPromise(this.options.matchmaker);
         return matchmaker.then(connectSocket);
+      } // This should be scheduled in a tight timed loop
+      // ex: window.requestAnimationFrame(renderLoop)
+
+    }, {
+      key: "renderLoop",
+      value: function renderLoop(timestamp) {
+        if (this.stopped) {
+          this.renderer.stop();
+          return;
+        }
+
+        this.lastTimestamp = this.lastTimestamp || timestamp;
+        this.renderer.draw(timestamp, timestamp - this.lastTimestamp);
+        this.lastTimestamp = timestamp;
       }
+    }, {
+      key: "start",
+
       /**
        * Start the client engine, setting up the game loop, rendering loop and renderer.
        *
        * @return {Promise} Resolves once the Renderer has been initialized, and the game is
        * ready to connect
        */
-
-    }, {
-      key: "start",
       value: function start() {
         var _this2 = this;
 
@@ -26986,22 +27000,6 @@
         // the render loop waits for next animation frame
 
         if (!this.renderer) alert('ERROR: game has not defined a renderer');
-
-        var renderLoop = function renderLoop(timestamp) {
-          if (_this2.stopped) {
-            _this2.renderer.stop();
-
-            return;
-          }
-
-          _this2.lastTimestamp = _this2.lastTimestamp || timestamp;
-
-          _this2.renderer.draw(timestamp, timestamp - _this2.lastTimestamp);
-
-          _this2.lastTimestamp = timestamp;
-          window.requestAnimationFrame(renderLoop);
-        };
-
         return this.renderer.init().then(function () {
           _this2.gameEngine.start();
 
@@ -27015,8 +27013,6 @@
 
             _this2.scheduler.start();
           }
-
-          if (typeof window !== 'undefined') window.requestAnimationFrame(renderLoop);
 
           if (_this2.options.autoConnect && _this2.options.standaloneMode !== true) {
             return _this2.connect().catch(function (error) {

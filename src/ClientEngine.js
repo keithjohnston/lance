@@ -161,6 +161,18 @@ class ClientEngine {
         return matchmaker.then(connectSocket);
     }
 
+    // This should be scheduled in a tight timed loop
+    // ex: window.requestAnimationFrame(renderLoop)
+    renderLoop(timestamp) {
+      if (this.stopped) {
+        this.renderer.stop();
+        return;
+      }
+      this.lastTimestamp = this.lastTimestamp || timestamp;
+      this.renderer.draw(timestamp, timestamp - this.lastTimestamp);
+      this.lastTimestamp = timestamp;
+    };
+
     /**
      * Start the client engine, setting up the game loop, rendering loop and renderer.
      *
@@ -173,17 +185,6 @@ class ClientEngine {
         // initialize the renderer
         // the render loop waits for next animation frame
         if (!this.renderer) alert('ERROR: game has not defined a renderer');
-        let renderLoop = (timestamp) => {
-            if (this.stopped) {
-                this.renderer.stop();
-                return;
-            }
-            this.lastTimestamp = this.lastTimestamp || timestamp;
-            this.renderer.draw(timestamp, timestamp - this.lastTimestamp);
-            this.lastTimestamp = timestamp;
-            window.requestAnimationFrame(renderLoop);
-        };
-
         return this.renderer.init().then(() => {
             this.gameEngine.start();
 
@@ -197,8 +198,6 @@ class ClientEngine {
                 this.scheduler.start();
             }
 
-            if (typeof window !== 'undefined')
-                window.requestAnimationFrame(renderLoop);
             if (this.options.autoConnect && this.options.standaloneMode !== true) {
                 return this.connect()
                     .catch((error) => {
